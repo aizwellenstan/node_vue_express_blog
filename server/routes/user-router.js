@@ -7,20 +7,20 @@ module.exports = app => {
     })
     const User = require('../models/User')
     const Article = require('../models/Article')
-// 引入权限管理中间件
+// Import auth middleware
 const authMiddleware = require('../middleware/auth')
-    // 注册用户
+    // Register
     router.post('/register', async (req, res) => {
         const {
             username,
             password
-        } = req.body//req.body，app需使用中间件express.json
-        // 1. 根据用户名找用户,判断用户是否存在
+        } = req.body//req.body，app need to use middleware express.json
+        // 1. Seach user by username if exits
         const user = await User.findOne({
             username
         })
-        assert(!user, 422, '用户已存在')
-        // 2. 存储
+        assert(!user, 422, 'User Exits')
+        // 2. Storage
         const model = await User.create({
             username,
             password
@@ -28,22 +28,22 @@ const authMiddleware = require('../middleware/auth')
         res.send(model)
     })
 
-    // login, 验证登录
+    // login, auth login
     router.post('/login', async (req, res) => {
         const {
             username,
             password
         } = req.body
-        assert(username && password, 422, '用户或密码不能为空')
-        // 1. 根据用户名找用户
+        assert(username && password, 422, 'username or password can not be empty')
+        // 1. find user by username
         const user = await User.findOne({
             username
         }).select('+password')
-        assert(user, 422, '用户不存在')
-        // 2. 校验密码
+        assert(user, 422, 'user not exits')
+        // 2. auth password
         const isValid = require('bcrypt').compareSync(password, user.password)
-        assert(isValid, 422, '密码错误')
-        // 3. 返回token
+        assert(isValid, 422, 'Wrong Password')
+        // 3. res token
         const token = jwt.sign({
             _id: user._id,
             username: user.username
